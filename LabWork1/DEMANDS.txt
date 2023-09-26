@@ -1,0 +1,90 @@
+0. Модели базы данных:
+CLASS ACTION:
+Action_Name CHAR(max_val = 50)
+Data_Stamp DateTime2
+
+CLASS GROUP:
+Name VARCHAR(max_val = 50)
+Period_Price MONEY
+Students(one-to-many)
+Schedule(one-to-one)
+GroupJournal(one-to-one)
+
+CLASS STUDENT:
+Name VARCHAR(max_val = 50)
+Gender VARCHAR(max_val = 5)
+Age TINYINT(max_val = 200)
+Photo VARCHAR(max_val = 200)
+Grant(many-toone)
+
+CLASS GRANT:
+Name VARCHAR(max_val = 50)
+Value MONEY
+
+ClASS GROUPJOURNAL:
+MarkList VARCHAR
+
+CLASS SCHEDULE:
+Name VARCHAR(max_val = 50)
+Weeks_Count SMALLINT
+Lessons(many-to-many)
+
+CLASS LESSON:
+Subject_Name VARCHAR(max_val = 50)
+Lesson_Price MONEY
+Photo VARCHAR(max_val = 200)
+Teachers(many-to-many)
+Day_Times(many-to-many)
+Lesson_Cabinet(many-to-many)
+
+CLASS DAYTIME
+Day_Name VARCHAR(max_val = 50)
+Start_Time = DATETIME2
+End_Time = DATETIME2
+
+CLASS CABINET:
+Name VARCHAR(max_val = 50)
+Floor VARCHAR(max_val = 50)
+
+CLASS TEACHER:
+Username VARCHAR(max_val = 50) 
+Specialization_Name VARCHAR(max_val = 50)
+Password VARCHAR(max_val = 50)
+Phone_Number VARCHAR(max_val = 50)
+Email VARCHAR(max_val = 100)
+Photo VARCHAR(max_val = 200)
+Individual_Class_Price MONEY
+Individual_Students(many-to-many)
+Role(one-to-one)
+
+CLASS ROLE:
+ROLE_NAME VARCHAR(max_val = 50)
+Salary MONEY
+
+1. Авторизация пользователя.
+Авторизация доступна для моделей: ученик, учитель(со всеми ролями: учитель, завуч, директор).
+2. Управление пользователями (CRUD).
+	Create:
+	Создание нового пользователя в системе.
+	Задание учетных данных, таких как имя пользователя и пароль.
+	Назначение прав доступа или ролей этому пользователю.
+	Read:
+	Просмотр информации о существующих пользователях.
+	Поиск пользователей по различным критериям, таким как имя, роль или другие атрибуты.
+	Просмотр прав доступа, принадлежащих конкретному пользователю.
+	Update:
+	Изменение данных существующего пользователя, таких как пароль, адрес электронной почты или роль.
+	Изменение прав доступа, связанных с пользователем.
+	Восстановление доступа к учетной записи, если пароль был утерян или забыт
+	Delete:
+3. Система ролей.
+	Удаление учетной записи пользователя из системы.
+	Отзыв прав доступа для пользователя, делая его неактивным.
+	В некоторых случаях архивирование данных пользователя вместо непосредственного удаления.
+Роли: 
+	Ученик имеет право на просмотр своего расписания,своих оценок,своего размера стипендии.
+	Учитель имеет право вносить изменения в классный журнал, просмотр всех оценок, всех расписаний, права ученика.
+	Завуч имеет право изменять стипендию, исключать и добавлять учеников, права учителя.
+	Директор имеет право нанимать и увольнять учетелей, права завуча
+4. Журналирование действий пользователя
+	Осуществляется с помощью модели Action
