@@ -1,0 +1,62 @@
+INSERT INTO Lesson(Subject_Name, Lesson_Price)//1
+VALUES ('Mathematics', '5');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)//2
+VALUES ('Physics', '6');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)//3
+VALUES ('Biology', '7');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)//4
+VALUES ('Informatics', '8');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Chemistry', '9');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Physical Education', '10');
+
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Kalugina Marina', 'Mathematics', '123', '+375299781864', 'kalugina@gmail.com', '10', '1', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Glebovich Valentina', 'Physics', '123', '+375299781864', 'glebovich@gmail.com', '12', '2', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Oleshkevich Elena', 'Biology', '123', '+375299781864', 'elena@gmail.com', '17', '3', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Uladymtsev Vadim', 'Informatics', '123', '+375299781864', 'vadim@gmail.com', '11', '4', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Nikulin Alexander', 'Chemistry', '123', '+375299781864', 'nikulin@gmail.com', '18', '5', '2')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Shatrova Larisa', 'Physical Education', '123', '+375299781864', 'shatrova@gmail.com', '18', '6', '3')
+
+INSERT INTO LESSON_TEACHER_PROVIDER(LESSON_Id, TEACHER_Id)
+VALUES (1,1);
+
+INSERT INTO LESSON_TEACHER_PROVIDER(LESSON_Id, TEACHER_Id)
+VALUES (2,2);
+
+INSERT INTO LESSON_TEACHER_PROVIDER(LESSON_Id, TEACHER_Id)
+VALUES (3,3);
+
+INSERT INTO LESSON_TEACHER_PROVIDER(LESSON_Id, TEACHER_Id)
+VALUES (4,4);
+
+INSERT INTO LESSON_TEACHER_PROVIDER(LESSON_Id, TEACHER_Id)
+VALUES (5,5);
+
+INSERT INTO LESSON_TEACHER_PROVIDER(LESSON_Id, TEACHER_Id)
+VALUES (6,6);
+
+ALTER TABLE Child
+ADD COLUMN parent_id INT;
+
+ALTER TABLE Child
+ADD CONSTRAINT fk_child_parent
+FOREIGN KEY (parent_id) REFERENCES Parent(parent_id) ON DELETE CASCADE;
+
