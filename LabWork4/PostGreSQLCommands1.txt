@@ -1,0 +1,736 @@
+INSERT INTO db0.gym_master SELECT * FROM db.gym_master из одной бд в другую
+DELETE * FROM table_name
+WHERE CONDITION;
+DROP TABLE my_table;
+TRUNCATE TABLE Clients;
+ALTER TABLE имя_таблицы DROP (название_столбцов)
+ALTER TABLE имя_таблицы DROP CONSTRAINT имя_ограничения
+
+//ДОБАВЛЕНИЕ FOREIGN KEY
+ALTER TABLE child_table
+ADD CONSTRAINT fk_child_parent
+FOREIGN KEY (child_column)
+REFERENCES parent_table (parent_column);
+//УДАЛЕНИЕ ПОЛЯ ИЗ ТАБЛИЦЫ
+ALTER TABLE TEACHER
+DROP COLUMN field_name;
+
+CREATE DATABASE College;
+\c college //подключение
+\conninfo
+\q-выход
+\l все базы данных
+\dt all table of db
+CREATE TABLE ACTION (//Simple
+    Id SERIAL PRIMARY KEY,
+    Action_Name CHAR(50),
+    Data_Stamp TIMESTAMP
+);
+CREATE TABLE STUDENT_GRANT (//Simple
+    Id SERIAL PRIMARY KEY,
+    Name VARCHAR(50),
+    Value MONEY
+);
+CREATE TABLE GROUPJOURNAL (//Simple
+    Id SERIAL PRIMARY KEY,
+    MarkList VARCHAR
+);
+CREATE TABLE DAYTIME (//Simple
+    Id SERIAL PRIMARY KEY,//нет ссылки на Lesson_Daytime_Provider
+    Day_Name VARCHAR(50),
+    Start_Time TIMESTAMP,
+    End_Time TIMESTAMP
+);
+CREATE TABLE CABINET (//Simple
+    Id SERIAL PRIMARY KEY,//нет ссылки на Lesson_Cabinet_Provider
+    Name VARCHAR(50),
+    Floor VARCHAR(50)
+);
+CREATE TABLE ROLE (
+    Id SERIAL PRIMARY KEY,
+    ROLE_NAME VARCHAR(50),
+    Salary MONEY
+);
+CREATE TABLE STUDENT_GROUP (//нет ссылки на Schedule
+    Id SERIAL PRIMARY KEY,
+    Name VARCHAR(50),
+    Period_Price MONEY,
+    GROUPJOURNAL_Id INT UNIQUE,
+    FOREIGN KEY (GROUPJOURNAL_Id) REFERENCES GROUPJOURNAL(Id)
+);
+
+CREATE TABLE STUDENT (
+    Id SERIAL PRIMARY KEY,
+    Name VARCHAR(50),
+    Gender VARCHAR(5),
+    Age SMALLINT,
+    Photo VARCHAR(200),
+    Student_Group_Id INT,
+    FOREIGN KEY (Student_Group_Id) REFERENCES STUDENT_GROUP(Id),
+    Student_Grant_Id INT,
+    FOREIGN KEY (Student_Grant_Id) REFERENCES STUDENT_GRANT(Id)
+);
+CREATE TABLE SCHEDULE (//нет ссылки на Lessons_Shedule_Provider
+    Id SERIAL PRIMARY KEY,
+    Name VARCHAR(50),
+    Weeks_Count SMALLINT
+);
+CREATE TABLE TEACHER (//нет ссылки на Lesson_Teacher_Provider
+    Id SERIAL PRIMARY KEY START WITH 1,
+    Username VARCHAR(50),
+    Specialization_Name VARCHAR(50),
+    Password VARCHAR(50),
+    Phone_Number VARCHAR(50),
+    Email VARCHAR(100),
+    Photo VARCHAR(200),
+    Individual_Class_Price MONEY,
+    Individual_STUDENT_Id INT,
+    FOREIGN KEY (Individual_STUDENT_Id) REFERENCES STUDENT(Id),
+    Role_Id INT,
+    FOREIGN KEY (Role_Id) REFERENCES ROLE(Id)
+);
+CREATE TABLE LESSON (//нет ссылки на Lesson_Daytime_Provider
+    Id SERIAL PRIMARY KEY,//нет ссылки на Lesson_Cabinet_Provider
+    Subject_Name VARCHAR(50),// нет ссылки на Lesson_Teacher_Provider
+    Lesson_Price MONEY, //нет ссылки на Lesson_Shedule_Provider
+    Photo VARCHAR(200)
+);
+
+//LESSON_SCHEDULE_Provider
+CREATE TABLE LESSON_SCHEDULE_PROVIDER (
+    SCHEDULE_Id INT,
+    LESSON_Id INT,
+    PRIMARY KEY (SCHEDULE_Id, LESSON_Id),
+    FOREIGN KEY (SCHEDULE_Id) REFERENCES SCHEDULE(Id),
+    FOREIGN KEY (LESSON_Id) REFERENCES LESSON(Id)
+);
+
+//LESSON_DAYTIME_PROVIDER
+CREATE TABLE LESSON_DAYTIME_PROVIDER (
+    LESSON_Id INT,
+    DAYTIME_Id INT,
+    PRIMARY KEY (LESSON_Id, DAYTIME_Id),
+    FOREIGN KEY (LESSON_Id) REFERENCES LESSON(Id),
+    FOREIGN KEY (DAYTIME_Id) REFERENCES DAYTIME(Id)
+);
+//TEACHER_STUDENT_PROVIDER
+CREATE TABLE TEACHER_STUDENT_PROVIDER(
+TEACHER_Id INT,
+STUDENT_Id INT,
+PRIMARY KEY (TEACHER_Id, STUDENT_Id),
+FOREIGN KEY (TEACHER_Id) REFERENCES TEACHER(Id),
+FOREIGN KEY (STUDENT_Id) REFERENCES STUDENT(Id)
+);
+
+//Исправление GROUP
+ALTER TABLE STUDENT_GROUP
+ADD COLUMN SCHEDULE_Id INT;
+ALTER TABLE STUDENT_GROUP
+ADD CONSTRAINT fk_student_group_schedule
+Foreign KEY (SCHEDULE_Id) REFERENCES SCHEDULE(Id) ON DELETE CASCADE;
+
+//******Заполнение Student_Grant
+INSERT INTO Student_GRANT (Name, Value)
+VALUES ('Bronze', 200.00);
+                                         ^
+INSERT INTO STUDENT_GRANT (Name, Value)
+Values ('Silver', 400.00);
+
+Insert into student_grant (name, value)
+Values ('Gold', 600.00); 
+
+//******ЗАПОЛНЕНИЕ CABINET
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('001(Gym)', 'Basement');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('101', 'First');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('201(Chemistry laboratory)', 'Second');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('301(Physics laboratory)', 'Third');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('401(Informatics laboratory)', 'Fouth');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('501(Biology laboratory)', 'Fifth');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('601(Restroom)', 'Sixth');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('102(Mathematics)', 'First');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('202(Chemistry laboratory)', 'Second');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('302(Physics laboratory)', 'Third');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('402(Informatics laboratory)', 'Fouth');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('502(Biology laboratory)', 'Fifth');
+
+INSERT INTO Cabinet (Name, Floor)
+VALUES ('002(Gym)', 'Basement');
+
+//*******ЗАПОЛНЕНИЕ ROLE
+INSERT INTO Role (ROLE_NAME, Salary)
+Values('Ordinary', 1000);
+
+INSERT INTO Role (ROLE_NAME, Salary)
+Values('Head_Teacher', 1500);
+
+INSERT INTO Role (ROLE_NAME, Salary)
+Values ('Director', 2000);
+
+//******ЗАПОЛНЕНИЕ DAYTIME
+//Замена типа DateTime2 на Time
+ALTER TABLE DAYTIME
+ALTER COLUMN Start_Time TYPE Time;
+
+ALTER TABLE DAYTIME
+ALTER COLUMN End_Time TYPE Time;
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Monday', '9:00:00', '9:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Tuesday', '09:00:00', '9:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Wednesday', '09:00:00', '9:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Thursday', '09:00:00', '9:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Fryday', '09:00:00', '9:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Monday', '10:00:00', '10:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Tuesday', '10:00:00', '10:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Wednesday', '10:00:00', '10:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Thursday', '10:00:00', '10:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Fryday', '10:00:00', '10:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Monday', '11:00:00', '11:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Tuesday', '11:00:00', '11:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Wednesday', '11:00:00', '11:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Thursday', '11:00:00', '11:45:00');
+
+INSERT INTO Daytime (Day_Name, Start_Time, End_Time)
+VALUES ('Fryday', '11:00:00', '11:45:00');
+
+//изменение GROUPJOURNAL
+ALTER TABLE GROUPJOURNAL
+ADD COLUMN Student_Number SMALLINT;
+
+ALTER TABLE GROUPJOURNAL
+ADD COLUMN StudentName VARCHAR(50);
+
+ALTER TABLE GROUPJOURNAL
+ADD COLUMN STUDENT_GROUP_Id INT;
+ALTER TABLE GROUPJOURNAL
+ADD CONSTRAINT fk_student_group
+Foreign KEY (STUDENT_GROUP_Id) REFERENCES STUDENT_GROUP(Id) ON DELETE CASCADE;
+
+//*******Создание групп
+INSERT INTO STUDENT_GROUP(Name, Period_Price)
+Values ('FirstGroup',1000);
+
+INSERT INTO STUDENT_GROUP(Name, Period_Price)
+Values ('SecondGroup',900);
+
+INSERT INTO STUDENT_GROUP(Name, Period_Price)
+Values ('ThirdGroup',900);
+
+ALTER TABLE student_group
+DROP COLUMN groupjournal_id;
+
+//*******Создание журналов групп
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (1,'Abramovich Pavel Nikolaevich', 1);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (2,'Bybko Alina Andreevna', 1);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (3,'Bychko Vasily Pavlovich', 1);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (4,'Glebtsova Elizaveta Nikolaevna', 1);
+***********
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (1,'Grischuk Alexander Olegovich', 2);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (2,'Short Pavel Igorevich', 2);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (3,'Kosach Dmitry Anatolyevich', 2);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (4,'Kudlasevich Artur Ivanovich', 2);
+************
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (1,'Pihtovnikova Maria Timurovna', 3);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (2,'Stovba Vladislav Alexandrovich', 3);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (3,'Talai Artem Alexandrovich', 3);
+
+INSERT INTO GROUPJOURNAL(Student_Number, StudentName, STUDENT_GROUP_Id)
+VALUES (4,'Timofeev Kirill Andreevich', 3);
+
+/////////////////////////
+ЗАПОЛНЕНИЕ STUDENT
+DELETE FROM STUDENT;
+//*******Создание учеников
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Abramovich Pavel Nikolaevich', 'Мale', 20, 'photo1.jpg', 1, 1);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Bybko Alina Andreevna', 'Female', 21, 'photo2.jpg', 2, 1);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Bychko Vasily Pavlovich', 'Male', 19, 'photo2.jpg', 2, 1);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Glebtsova Elizaveta Nikolaevna', 'Female', 19, 'photo2.jpg', 3, 1);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Grischuk Alexander Olegovich', 'Male', 22, 'photo2.jpg', 3, 2);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Short Pavel Igorevich', 'Male', 22, 'photo2.jpg', 1, 2);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Kosach Dmitry Anatolyevich', 'Male', 22, 'photo2.jpg', 1, 2);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Kudlasevich Artur Ivanovich', 'Male', 22, 'photo2.jpg', 1, 2);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Pihtovnikova Maria Timurovna', 'Female', 21, 'photo2.jpg', 2, 3);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Stovba Vladislav Alexandrovich', 'Male', 21, 'photo2.jpg', 3, 3);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id,STUDENT_GROUP_ID)
+VALUES ('Talai Artem Alexandrovich', 'Male', 20, 'photo2.jpg', 3, 3);
+
+INSERT INTO Student (Name, Gender, Age, Photo, Student_Grant_Id, STUDENT_GROUP_ID)
+VALUES ('Timofeev Kirill Andreevich', 'Male', 20, 'photo2.jpg', 2, 3);
+//*******Создание учеников
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Kalugina Marina', 'Mathematics', '123', '+375299781864', 'kalugina@gmail.com', '10', '1', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Yaroshuk Elena', 'Mathematics', '123', '+375299781864', 'elena@gmail.com', '20', null, '1');
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Glebovich Valentina', 'Physics', '123', '+375299781864', 'glebovich@gmail.com', '12', '2', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Reserford Max', 'Physics', '123', '+375299781864', 'reserford@gmail.com', '12', null, '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Oleshkevich Elena', 'Biology', '123', '+375299781864', 'elena@gmail.com', '17', '3', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Levenguk Antony', 'Biology', '123', '+375299781864', 'levenguk@gmail.com', '20', null, '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Uladymtsev Vadim', 'Informatics', '123', '+375299781864', 'vadim@gmail.com', '11', '4', '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Glamazdin Igor', 'Informatics', '123', '+375299781864', 'glamazdin@gmail.com', '11', null, '1')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Nikulin Alexander', 'Chemistry', '123', '+375299781864', 'nikulin@gmail.com', '18', '5', '2')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Shredder Alexey', 'Chemistry', '123', '+375299781864', 'shredder@gmail.com', '18', null, '2')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Shatrova Larisa', 'Physical Education', '123', '+375299781864', 'shatrova@gmail.com', '18', '6', '3')
+
+INSERT INTO Teacher (Username, Specialization_Name, Password, Phone_Number, Email, Individual_Class_Price, Individual_STUDENT_Id, Role_Id)
+VALUES ('Thompson Steven', 'Physical Education', '123', '+375299781864', 'thompson@gmail.com', '18', null, '3')
+
+ALTER TABLE teacher
+DROP COLUMN Individual_STUDENT_Id;
+//**Заполнение Lesson
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Mathematics', '5');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Physics', '6');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Biology', '7');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Informatics', '8');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Chemistry', '9');
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price)
+VALUES ('Physical Education', '10');
+/////////////
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price, cabinet_id, teacher_id)
+VALUES ('Mathematics', '5', 8, 7);
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price, cabinet_id, teacher_id)
+VALUES ('Physics', '6', 10, 8);
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price, cabinet_id, teacher_id)
+VALUES ('Biology', '7',12, 9);
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price, cabinet_id, teacher_id)
+VALUES ('Informatics','8', 11,10);
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price, cabinet_id, teacher_id)
+VALUES ('Chemistry','9', 9, 11);
+
+INSERT INTO Lesson(Subject_Name, Lesson_Price, cabinet_id, teacher_id)
+VALUES ('Physical Education','10', 13, 12);
+
+//**заполнение LESSON_DAYTIME_PROVIDER
+//Mathematics Lessons
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (1,1);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES ('1','3');
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES ('1','5');
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (7,6);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (7,8);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (7,10);
+
+//Physics Lessons
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (2,6);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (2,8);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (2,10);
+//for 3group
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (8,1);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (8,3);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (8,5);
+
+//Biology Lessons
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (3,2);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (3,4);
+
+//for 3group
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (9,7);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (9,9);
+
+//Chemistry Lessons
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (5,7);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (5,9);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (11,12);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (11, 14);
+
+//Informatics Lessons
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (4,6);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (4,8);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (10,2);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (10, 4);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (10, 13);
+
+//PE Lessons
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (6,11);
+
+//for3Group
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (12, 11);
+
+INSERT INTO LESSON_DAYTIME_PROVIDER(LESSON_Id, DAYTIME_Id)
+VALUES (12, 15);
+
+//Заполнение TEACHER_INDIVIDUAL_STUDENT
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (1, 1);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (1, 2);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (1, 3);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (1, 4);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (1, 5);
+
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (2, 1);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (2, 2);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (2, 3);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (2, 4);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (2, 5);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (2, 6);
+
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (3, 7);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (3, 8);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (3, 9);
+INSERT INTO TEACHER_STUDENT_PROVIDER(TEACHER_Id, STUDENT_Id)
+VALUES (3, 10);
+
+//Добавление ссылки на Cabinet в Lesson
+ALTER TABLE LESSON
+ADD COLUMN CABINET_Id INT;
+
+ALTER TABLE LESSON
+ADD CONSTRAINT fk_lesson_cabinet
+FOREIGN KEY (CABINET_Id) REFERENCES CABINET(Id);
+
+//Добавление ссылки на Teacher в Lesson
+ALTER TABLE LESSON
+ADD COLUMN TEACHER_Id INT;
+
+ALTER TABLE LESSON
+ADD CONSTRAINT fk_lesson_teacher
+FOREIGN KEY (TEACHER_Id) REFERENCES TEACHER(Id);
+
+//Добавление ссылки на Cabinet и Teacher в Lesson
+UPDATE LESSON
+SET CABINET_ID = 2, TEACHER_ID =1
+WHERE subject_name = 'Mathematics';
+
+UPDATE LESSON
+SET CABINET_ID = 4, TEACHER_ID =2
+WHERE subject_name = 'Physics';
+
+UPDATE LESSON
+SET CABINET_ID = 6, TEACHER_ID =3
+WHERE subject_name = 'Biology';
+
+UPDATE LESSON
+SET CABINET_ID = 5, TEACHER_ID =4
+WHERE subject_name = 'Informatics';
+
+UPDATE LESSON
+SET CABINET_ID = 3, TEACHER_ID =5
+WHERE subject_name = 'Chemistry';
+
+UPDATE LESSON
+SET CABINET_ID = 1, TEACHER_ID =6
+WHERE subject_name = 'Physical Education';
+
+//Заполнение Schedule
+INSERT INTO SCHEDULE(name, weeks_count)
+VALUES('FirstGroupSchedule',36);
+
+INSERT INTO SCHEDULE(name, weeks_count)
+VALUES('SecondGroupSchedule',40);
+
+INSERT INTO SCHEDULE(name, weeks_count)
+VALUES('ThirdGroupSchedule',44);
+
+//Добавление расписание в группу
+UPDATE STUDENT_GROUP
+SET SCHEDULE_Id = 1
+WHERE name = 'FirstGroup';
+
+UPDATE STUDENT_GROUP
+SET SCHEDULE_Id = 2
+WHERE name = 'SecondGroup';
+
+UPDATE STUDENT_GROUP
+SET SCHEDULE_Id = 3
+WHERE name = 'ThirdGroup';
+
+//Добавление уроков в расписание
+//1GROUP
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (1,1);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (1,2);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (1,4);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (1,6);
+
+//2GRoup
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (2,3);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (2,5);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (2,6);
+
+//2GROUP
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (3,7);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (3,8);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (3,9);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (3,10);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (3,11);
+INSERT INTO LESSON_SCHEDULE_PROVIDER(SCHEDULE_Id, LESSON_Id)
+VALUES (3,12);
+
+Пул запросов
+//READ
+SELECT * FROM STUDENT;
+SELECT * FROM Student WHERE Age > 20;
+
+//UPDATE
+ALTER TABLE Teacher
+ADD COLUMN Salary MONEY DEFAULT 1500.00;
+
+UPDATE Teacher SET SALARY = 2000 WHERE specialization_name = 'Mathematics';
+UPDATE Teacher SET role_id = 2 WHERE id = 2;
+
+//Агрегатные функции
+SELECT SUM(LESSON_PRICE) FROM LESSON;
+SELECT SUM(LESSON_PRICE) FROM LESSON
+WHERE teacher_id =3;
+
+SELECT COUNT(*) FROM Student;
+SELECT AVG(Age) FROM Student;
+SELECT MIN(Age) FROM Student;
+SELECT MAX(Age) FROM Student;
+
+//Выборка и группировка
+SELECT DISTINCT role_id from TEACHER; //2 1 3
+SELECT role_id FROM TEACHER GROUP BY role_id; //2 1 3
+SELECT COUNT(role_id) from TEACHER;//6
+SELECT role_id as role, COUNT(role_id) as count FROM TEACHER GROUP BY role_id;
+ role | count
+------+-------
+    2 |     1
+    3 |     1
+    1 |     4
+
+SELECT gender, COUNT(gender) as count FROM STUDENT GROUP BY gender;
+ gender | count
+--------+-------
+ Female |     3
+ Male   |     9
+
+SELECT student_grant_id, COUNT(student_grant_id) as count FROM STUDENT GROUP BY student_grant_id;
+ student_grant_id | count
+------------------+-------
+                3 |     4
+                2 |     4
+                1 |     4
+//GROUP BY + WHERE
+
+SELECT role_id, SUM(salary) as sum
+From Teacher
+Where id < 9
+GROUP BY role_id;
+ role_id |    sum
+---------+-----------
+       3 | $1,500.00
+       1 | $7,000.00
+       2 | $3,000.00
+(3 rows)
+//GROUP BY + HAVING Наложение условий на аггрегационные функции HAVING like WHERE after grouping
+SELECT role_id, AVG(salary) as avg_salary
+FROM TEACHER
+GROUP BY role_id
+HAVING avg_salary > 2000
+ORDER BY avg_salary DESC;
+
+SELECT * FROM Student
+WHERE name LIKE 'K%'
+LIMIT 3
+OFFSET 1;
+ id |            name             | gender | age |   photo    | student_group_id | student_grant_id
+----+-----------------------------+--------+-----+------------+------------------+------------------
+  8 | Kudlasevich Artur Ivanovich | Male   |  22 | photo2.jpg |                2 |                1
+(1 row)
+
+//Index
+CREATE INDEX student_group_index
+ON Student (student_group_id);
+
+SELECT COUNT(*)
+FROM STUDENT
+WHERE student_group_id = 1;
+
+ count
+-------
+     4
+(1 row)
+UPDATE TEACHER
+SET SALARY = 2500.00
+WHERE ROLE_ID = 2;

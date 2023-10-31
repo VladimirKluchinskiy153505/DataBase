@@ -1,0 +1,427 @@
+//Запросы с несколькими условиями
+
+1) SELECT * FROM Student WHERE Age > 18 AND Gender = 'Female';
+ id |              name              | gender | age |   photo    | student_group_id | student_grant_id
+----+--------------------------------+--------+-----+------------+------------------+------------------
+  2 | Bybko Alina Andreevna          | Female |  21 | photo2.jpg |                1 |                2
+  4 | Glebtsova Elizaveta Nikolaevna | Female |  19 | photo2.jpg |                1 |                3
+  9 | Pihtovnikova Maria Timurovna   | Female |  21 | photo2.jpg |                3 |                2
+
+2) SELECT *
+FROM Teacher
+WHERE Specialization_Name = 'Mathematics'
+AND CAST(salary AS NUMERIC) > 1800.00;
+ id |    username    | specialization_name | password | phone_number  |      email      | photo | individual_class_price | role_id |  salary
+----+----------------+---------------------+----------+---------------+-----------------+-------+------------------------+---------+-----------
+  7 | Yaroshuk Elena | Mathematics         | 123      | +375299781864 | elena@gmail.com |       |                 $20.00 |       1 | $2,000.00
+(1 row)
+
+3) SELECT * FROM STUDENT
+WHERE GENDER = 'Male' OR STUDENT_GROUP_ID = 1;
+ id |              name              | gender | age |   photo    | student_group_id | student_grant_id
+----+--------------------------------+--------+-----+------------+------------------+------------------
+  1 | Abramovich Pavel Nikolaevich   | Male   |  20 | photo1.jpg |                1 |                1
+  2 | Bybko Alina Andreevna          | Female |  21 | photo2.jpg |                1 |                2
+  3 | Bychko Vasily Pavlovich        | Male   |  19 | photo2.jpg |                1 |                2
+  4 | Glebtsova Elizaveta Nikolaevna | Female |  19 | photo2.jpg |                1 |                3
+  5 | Grischuk Alexander Olegovich   | Male   |  22 | photo2.jpg |                2 |                3
+  6 | Short Pavel Igorevich          | Male   |  22 | photo2.jpg |                2 |                1
+  7 | Kosach Dmitry Anatolyevich     | Male   |  22 | photo2.jpg |                2 |                1
+  8 | Kudlasevich Artur Ivanovich    | Male   |  22 | photo2.jpg |                2 |                1
+ 10 | Stovba Vladislav Alexandrovich | Male   |  21 | photo2.jpg |                3 |                3
+ 11 | Talai Artem Alexandrovich      | Male   |  20 | photo2.jpg |                3 |                3
+ 12 | Timofeev Kirill Andreevich     | Male   |  20 | photo2.jpg |                3 |                2
+
+4) SELECT *
+FROM LESSON
+WHERE (CAST(LESSON_PRICE as NUMERIC) >= 6.00 AND ID > 10) OR (TEACHER_ID < 4)
+ORDER BY LESSON_PRICE DESC;
+ id |    subject_name    | lesson_price | photo | cabinet_id | teacher_id
+----+--------------------+--------------+-------+------------+------------
+ 12 | Physical Education |       $10.00 |       |         13 |         12
+ 11 | Chemistry          |        $9.00 |       |          9 |         11
+  3 | Biology            |        $7.00 |       |          6 |          3
+  2 | Physics            |        $6.00 |       |          4 |          2
+  1 | Mathematics        |        $5.00 |       |          2 |          1
+
+//Запросы с вложенными конструкциями
+
+1) SELECT *
+FROM (SELECT name, age FROM STUDENT
+	WHERE STUDENT_GROUP_ID = 1) as SF
+WHERE SF.AGE BETWEEN 20 AND 21;
+             name             | age
+------------------------------+-----
+ Abramovich Pavel Nikolaevich |  20
+ Bybko Alina Andreevna        |  21
+(2 rows)
+
+2) SELECT ID, USERNAME FROM TEACHER
+WHERE INDIVIDUAL_CLASS_PRICE IN(SELECT LESSON_PRICE
+				FROM LESSON
+				WHERE CAST(LESSON_PRICE AS NUMERIC) >8.00);
+ id |    username
+----+-----------------
+  1 | Kalugina Marina
+(1 row)
+
+3) SELECT TEACHER.USERNAME, COUNT(STUDENT_ID) AS Student_Count FROM TEACHER
+LEFT JOIN TEACHER_STUDENT_PROVIDER ON TEACHER.ID = TEACHER_STUDENT_PROVIDER.TEACHER_ID
+LEFT JOIN STUDENT ON STUDENT.ID = TEACHER_STUDENT_PROVIDER.STUDENT_ID
+GROUP BY TEACHER.USERNAME
+HAVING COUNT(STUDENT) >= 5;
+      username       | student_count
+---------------------+---------------
+ Glebovich Valentina |             6
+ Kalugina Marina     |             5
+
+//Прочие сложные выборки, необходимые в вашем проекте.
+
+Расчёт суммы стипендии для каждой группы
+SELECT STUDENT_GROUP.NAME, SUM(STUDENT_GRANT.VALUE) AS GRANT_SUM
+FROM STUDENT_GROUP
+JOIN STUDENT ON STUDENT_GROUP.ID = STUDENT.STUDENT_GROUP_ID
+JOIN STUDENT_GRANT ON STUDENT.STUDENT_GRANT_ID = STUDENT_GRANT.ID
+GROUP BY STUDENT_GROUP.NAME;
+    name     | grant_sum
+-------------+-----------
+ FirstGroup  | $1,600.00
+ SecondGroup | $1,200.00
+ ThirdGroup  | $2,000.00
+(3 rows)
+
+Расчёт зарплаты для каждой категории учителей
+SELECT ROLE.ROLE_NAME, SUM(TEACHER.SALARY) AS SALARY_SUM
+FROM ROLE
+JOIN TEACHER ON ROLE.ID = TEACHER.ROLE_ID
+GROUP BY ROLE.ROLE_NAME;
+  role_name   | salary_sum
+--------------+------------
+ Director     |  $3,000.00
+ Head_Teacher |  $5,000.00
+ Ordinary     | $14,200.00
+(3 rows)
+
+По каким дням у каждой группы математика и во сколько
+SELECT STUDENT_GROUP.NAME,DAYTIME.START_TIME, DAYTIME.DAY_NAME as Math_day
+FROM STUDENT_GROUP
+JOIN SCHEDULE ON STUDENT_GROUP.SCHEDULE_ID = SCHEDULE.ID
+JOIN LESSON_SCHEDULE_PROVIDER ON SCHEDULE.ID = LESSON_SCHEDULE_PROVIDER.SCHEDULE_ID
+JOIN LESSON ON LESSON_SCHEDULE_PROVIDER.LESSON_ID = LESSON.ID
+JOIN LESSON_DAYTIME_PROVIDER ON LESSON.ID = LESSON_DAYTIME_PROVIDER.LESSON_ID
+JOIN DAYTIME ON LESSON_DAYTIME_PROVIDER.DAYTIME_ID = DAYTIME.ID
+WHERE LESSON.SUBJECT_NAME = 'Mathematics';
+    name    | start_time | math_day
+------------+------------+-----------
+ FirstGroup | 09:00:00   | Monday
+ FirstGroup | 09:00:00   | Wednesday
+ FirstGroup | 09:00:00   | Friday
+ ThirdGroup | 10:00:00   | Monday
+ ThirdGroup | 10:00:00   | Wednesday
+ ThirdGroup | 10:00:00   | Friday
+(6 rows)
+
+Сколько уроков физики для каждой группы в неделю
+SELECT STUDENT_GROUP.NAME,COUNT(DAYTIME.ID) as Physics_days
+FROM STUDENT_GROUP
+JOIN SCHEDULE ON STUDENT_GROUP.SCHEDULE_ID = SCHEDULE.ID
+JOIN LESSON_SCHEDULE_PROVIDER ON SCHEDULE.ID = LESSON_SCHEDULE_PROVIDER.SCHEDULE_ID
+JOIN LESSON ON LESSON_SCHEDULE_PROVIDER.LESSON_ID = LESSON.ID
+JOIN LESSON_DAYTIME_PROVIDER ON LESSON.ID = LESSON_DAYTIME_PROVIDER.LESSON_ID
+JOIN DAYTIME ON LESSON_DAYTIME_PROVIDER.DAYTIME_ID = DAYTIME.ID
+WHERE LESSON.SUBJECT_NAME = 'Physics'
+GROUP BY STUDENT_GROUP.NAME; 
+    name    | physics_days
+------------+--------------
+ FirstGroup |            3
+ ThirdGroup |            3
+(2 rows)
+
+2.Составлен пул SQL запросов для получения представлений в БД
+
+;INNER JOIN
+SELECT TEACHER.USERNAME, TEACHER_STUDENT_PROVIDER.STUDENT_ID
+FROM TEACHER INNER JOIN TEACHER_STUDENT_PROVIDER
+ON TEACHER.ID = TEACHER_STUDENT_PROVIDER.TEACHER_ID;
+      username       | student_id
+---------------------+------------
+ Kalugina Marina     |          1
+ Kalugina Marina     |          2
+ Kalugina Marina     |          3
+ Kalugina Marina     |          4
+ Kalugina Marina     |          5
+ Glebovich Valentina |          1
+ Glebovich Valentina |          2
+ Glebovich Valentina |          3
+ Glebovich Valentina |          4
+ Glebovich Valentina |          5
+ Glebovich Valentina |          6
+ Oleshkevich Elena   |          7
+ Oleshkevich Elena   |          8
+ Oleshkevich Elena   |          9
+ Oleshkevich Elena   |         10
+
+;FULL JOIN
+SELECT TEACHER.USERNAME, TEACHER_STUDENT_PROVIDER.STUDENT_ID
+FROM TEACHER FULL JOIN TEACHER_STUDENT_PROVIDER
+ON TEACHER.ID = TEACHER_STUDENT_PROVIDER.TEACHER_ID;
+      username       | student_id
+---------------------+------------
+ Kalugina Marina     |          1
+ Kalugina Marina     |          2
+ Kalugina Marina     |          3
+ Kalugina Marina     |          4
+ Kalugina Marina     |          5
+ Glebovich Valentina |          1
+ Glebovich Valentina |          2
+ Glebovich Valentina |          3
+ Glebovich Valentina |          4
+ Glebovich Valentina |          5
+ Glebovich Valentina |          6
+ Oleshkevich Elena   |          7
+ Oleshkevich Elena   |          8
+ Oleshkevich Elena   |          9
+ Oleshkevich Elena   |         10
+ Shredder Alexey     |
+ Thompson Steven     |
+ Glamazdin Igor      |
+ Nikulin Alexander   |
+ Reserford Max       |
+ Shatrova Larisa     |
+ Uladymtsev Vadim    |
+ Levenguk Antony     |
+ Yaroshuk Elena      |
+
+;LEFT JOIN
+SELECT TEACHER.USERNAME, TEACHER_STUDENT_PROVIDER.STUDENT_ID
+FROM TEACHER LEFT JOIN TEACHER_STUDENT_PROVIDER
+ON TEACHER.ID = TEACHER_STUDENT_PROVIDER.TEACHER_ID;
+      username       | student_id
+---------------------+------------
+ Kalugina Marina     |          1
+ Kalugina Marina     |          2
+ Kalugina Marina     |          3
+ Kalugina Marina     |          4
+ Kalugina Marina     |          5
+ Glebovich Valentina |          1
+ Glebovich Valentina |          2
+ Glebovich Valentina |          3
+ Glebovich Valentina |          4
+ Glebovich Valentina |          5
+ Glebovich Valentina |          6
+ Oleshkevich Elena   |          7
+ Oleshkevich Elena   |          8
+ Oleshkevich Elena   |          9
+ Oleshkevich Elena   |         10
+ Shredder Alexey     |
+ Thompson Steven     |
+ Glamazdin Igor      |
+ Nikulin Alexander   |
+ Reserford Max       |
+ Shatrova Larisa     |
+ Uladymtsev Vadim    |
+ Levenguk Antony     |
+ Yaroshuk Elena      |
+
+;RIGHT JOIN
+SELECT TEACHER.USERNAME, TEACHER_STUDENT_PROVIDER.STUDENT_ID
+FROM TEACHER RIGHT JOIN TEACHER_STUDENT_PROVIDER
+ON TEACHER.ID = TEACHER_STUDENT_PROVIDER.TEACHER_ID;
+      username       | student_id
+---------------------+------------
+ Kalugina Marina     |          1
+ Kalugina Marina     |          2
+ Kalugina Marina     |          3
+ Kalugina Marina     |          4
+ Kalugina Marina     |          5
+ Glebovich Valentina |          1
+ Glebovich Valentina |          2
+ Glebovich Valentina |          3
+ Glebovich Valentina |          4
+ Glebovich Valentina |          5
+ Glebovich Valentina |          6
+ Oleshkevich Elena   |          7
+ Oleshkevich Elena   |          8
+ Oleshkevich Elena   |          9
+ Oleshkevich Elena   |         10
+
+;CROSS JOIN
+SELECT STUDENT.NAME, STUDENT_GRANT.NAME
+FROM STUDENT CROSS JOIN STUDENT_GRANT
+WHERE STUDENT.NAME LIKE 'B%';
+          name           |  name
+-------------------------+--------
+ Bybko Alina Andreevna   | Bronze
+ Bybko Alina Andreevna   | Silver
+ Bybko Alina Andreevna   | Gold
+ Bychko Vasily Pavlovich | Bronze
+ Bychko Vasily Pavlovich | Silver
+ Bychko Vasily Pavlovich | Gold
+
+;SELF JOIN
+3 GROUP BY + агрегирующие функции
+
+SELECT ROLE_ID, AVG(CAST(SALARY as NUMERIC)) as avg_salary
+FROM TEACHER
+GROUP BY ROLE_ID;
+ role_id |      avg_salary
+---------+-----------------------
+       2 | 2500.0000000000000000
+       3 | 3000.0000000000000000
+       1 | 1577.7777777777777778
+
+SELECT STUDENT.GENDER, MIN(STUDENT_GRANT.VALUE)
+FROM STUDENT JOIN STUDENT_GRANT
+ON STUDENT.STUDENT_GRANT_ID = STUDENT_GRANT.ID
+GROUP BY STUDENT.GENDER;
+ gender |   min
+--------+---------
+ Male   | $200.00
+ Female | $400.00
+
+SELECT TEACHER.USERNAME, COUNT(STUDENT_ID) as STUDENT_COUNT
+FROM TEACHER JOIN TEACHER_STUDENT_PROVIDER
+ON TEACHER.ID = TEACHER_STUDENT_PROVIDER.TEACHER_ID
+GROUP BY TEACHER.USERNAME
+ORDER BY STUDENT_COUNT ASC;
+      username       | student_count
+---------------------+---------------
+ Oleshkevich Elena   |             4
+ Kalugina Marina     |             5
+ Glebovich Valentina |             6
+
+//HAVING
+1) SELECT STUDENT_GROUP.NAME, COUNT(STUDENT.ID) as student_num
+FROM STUDENT_GROUP JOIN STUDENT
+ON STUDENT.STUDENT_GROUP_ID = STUDENT_GROUP.ID
+WHERE GENDER = 'Male'
+GROUP BY STUDENT_GROUP.NAME
+HAVING COUNT(STUDENT.ID)<=3;
+    name    | student_num
+------------+-------------
+ FirstGroup |           2
+ ThirdGroup |           3
+(2 rows)
+
+2) SELECT role_id, AVG(CAST(salary as NUMERIC)) as avg_salary
+FROM TEACHER
+GROUP BY role_id
+HAVING AVG(CAST(salary as NUMERIC)) > 2000
+ORDER BY avg_salary DESC;
+ role_id |      avg_salary
+---------+-----------------------
+       3 | 3000.0000000000000000
+       2 | 2500.0000000000000000
+(2 rows)
+
+//UNION
+SELECT NAME, ID
+FROM STUDENT
+UNION
+SELECT USERNAME, ID
+FROM TEACHER
+ORDER BY NAME
+LIMIT 10;
+              name              | id
+--------------------------------+----
+ Abramovich Pavel Nikolaevich   |  1
+ Bybko Alina Andreevna          |  2
+ Bychko Vasily Pavlovich        |  3
+ Glamazdin Igor                 | 10
+ Glebovich Valentina            |  2
+ Glebtsova Elizaveta Nikolaevna |  4
+ Grischuk Alexander Olegovich   |  5
+ Kalugina Marina                |  1
+ Kosach Dmitry Anatolyevich     |  7
+ Kudlasevich Artur Ivanovich    |  8
+
+//EXISTS
+ALTER TABLE STUDENT
+ALTER COLUMN STUDENT_GRANT_ID DROP NOT NULL;
+
+SELECT NAME
+FROM STUDENT
+WHERE EXISTS (
+    SELECT 1
+    FROM STUDENT_GRANT
+    WHERE STUDENT.STUDENT_GRANT_ID = STUDENT_GRANT.ID
+);
+              name
+--------------------------------
+ Kudlasevich Artur Ivanovich
+ Kosach Dmitry Anatolyevich
+ Short Pavel Igorevich
+ Abramovich Pavel Nikolaevich
+ Timofeev Kirill Andreevich
+ Pihtovnikova Maria Timurovna
+ Bychko Vasily Pavlovich
+ Talai Artem Alexandrovich
+ Stovba Vladislav Alexandrovich
+ Grischuk Alexander Olegovich
+ Glebtsova Elizaveta Nikolaevna
+(11 rows)
+
+//INSERT INTO SELECT
+INSERT INTO STUDENT (NAME)
+SELECT USERNAME
+FROM TEACHER
+WHERE ID<2;
+
+//CASE
+SELECT USERNAME, CASE
+			WHEN CAST(SALARY as NUMERIC) > 2000 THEN 'HIGN SALARY'
+			ELSE 'LOW SALARY'
+			END AS salary_category
+FROM TEACHER;
+      username       | salary_category
+---------------------+-----------------
+ Oleshkevich Elena   | LOW SALARY
+ Uladymtsev Vadim    | LOW SALARY
+ Yaroshuk Elena      | LOW SALARY
+ Reserford Max       | LOW SALARY
+ Levenguk Antony     | LOW SALARY
+ Glamazdin Igor      | LOW SALARY
+ Shredder Alexey     | LOW SALARY
+ Thompson Steven     | LOW SALARY
+ Kalugina Marina     | LOW SALARY
+ Shatrova Larisa     | HIGN SALARY
+ Nikulin Alexander   | HIGN SALARY
+ Glebovich Valentina | HIGN SALARY
+
+SELECT ROLE_ID,
+       AVG(CASE
+               WHEN CAST(salary as NUMERIC) > 2000 THEN CAST(salary as NUMERIC)
+               ELSE 0
+           END) AS avg_high_salary
+FROM TEACHER
+GROUP BY ROLE_ID
+ORDER BY avg_high_salary DESC;
+ role_id |    avg_high_salary
+---------+------------------------
+       3 |  3000.0000000000000000
+       2 |  2500.0000000000000000
+       1 | 0.00000000000000000000
+(3 rows)
+
+//EXPLAIN
+EXPLAIN
+SELECT *
+FROM Teacher
+WHERE Specialization_Name = 'Mathematics'
+AND CAST(salary AS NUMERIC) > 1800.00;
+                                            QUERY PLAN
+---------------------------------------------------------------------------------------------------
+ Seq Scan on teacher  (cost=0.00..11.22 rows=1 width=1132)
+   Filter: (((specialization_name)::text = 'Mathematics'::text) AND ((salary)::numeric > 1800.00))
+(2 rows)
+
+EXPLAIN
+DELETE FROM STUDENT
+WHERE ID = 22;
+                         QUERY PLAN
+-------------------------------------------------------------
+-------------------------------------------------------------
+ Delete on student  (cost=0.00..1.15 rows=0 width=0)
+   ->  Seq Scan on student  (cost=0.00..1.15 rows=1 width=6)
+         Filter: (id = 22)
+(3 rows)
